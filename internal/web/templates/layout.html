@@ -1,0 +1,37 @@
+{{define "layout"}}<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{if .Title}}{{.Title}} · {{end}}Vigia</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <meta name="htmx-config" content='{"includeIndicatorStyles": false}'>
+  <script src="/static/htmx.min.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="/"><span class="brand-dot"></span>Vigia</a>
+      {{if .User.ID}}
+      <nav class="nav">
+        <a href="/" {{if eq .Active "monitors"}}aria-current="page"{{end}}>Monitores</a>
+        <a href="/incidents" {{if eq .Active "incidents"}}aria-current="page"{{end}}>Incidentes</a>
+        <a href="/projects" {{if eq .Active "projects"}}aria-current="page"{{end}}>Projetos</a>
+        <a href="/channels" {{if eq .Active "channels"}}aria-current="page"{{end}}>Alertas</a>
+        <a href="/account" {{if eq .Active "account"}}aria-current="page"{{end}}>Conta</a>
+      </nav>
+      <form method="post" action="/logout" class="logout">
+        <span class="muted small">{{.User.Email}} · {{.Limits.Plan.Label}}</span>
+        <button class="btn btn-ghost btn-sm" type="submit">Sair</button>
+      </form>
+      {{end}}
+    </div>
+  </header>
+  <main class="wrap main">
+    {{template "flash" .}}
+    {{template "content" .}}
+  </main>
+  <footer class="wrap footer muted small">Vigia · horários em America/Sao_Paulo · {{year}}</footer>
+</body>
+</html>{{end}}

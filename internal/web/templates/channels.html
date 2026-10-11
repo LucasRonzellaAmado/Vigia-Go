@@ -1,0 +1,55 @@
+{{define "content"}}
+{{$d := .Data}}
+<div class="page-head">
+  <div>
+    <h1>Canais de alerta</h1>
+    <p class="muted">Quando um monitor cai ou volta, todos os canais ativos do projeto recebem. Lembretes seguem com intervalo crescente enquanto continuar fora.</p>
+  </div>
+</div>
+
+{{if $d.Channels}}
+<div class="card table-card">
+  <table class="table">
+    <thead><tr><th>Canal</th><th>Destino</th><th>Projeto</th><th></th></tr></thead>
+    <tbody>
+    {{range $d.Channels}}
+      <tr>
+        <td class="strong">{{.Name}}<div class="muted small">{{.Kind}}</div></td>
+        <td class="mono small">{{.Target}}</td>
+        <td>{{.ProjectName}}</td>
+        <td class="actions">
+          <span id="test-{{.ID}}"></span>
+          <button class="btn btn-sm" hx-post="/channels/{{.ID}}/test" hx-target="#test-{{.ID}}" hx-disabled-elt="this">Testar</button>
+          <form method="post" action="/channels/{{.ID}}/delete"><button class="btn btn-sm btn-danger" type="submit">Apagar</button></form>
+        </td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table>
+</div>
+{{end}}
+
+<section class="card">
+  <h2>Novo canal</h2>
+  {{with $d.Form.Error}}<div class="alert alert-error">{{.}}</div>{{end}}
+  <form class="form form-grid" method="post" action="/channels">
+    <label>Projeto
+      <select name="project_id">{{range $d.Projects}}<option value="{{.ID}}" {{if eq64 .ID $d.Form.ProjectID}}selected{{end}}>{{.Name}}</option>{{end}}</select>
+    </label>
+    <label>Tipo
+      <select name="kind">
+        {{range $d.Kinds}}<option value="{{.Value}}" {{if eq .Value $d.Form.Kind}}selected{{end}} {{if not .Available}}disabled{{end}}>{{.Label}}{{if not .Available}} (não configurado no servidor){{end}}</option>{{end}}
+      </select>
+    </label>
+    <label>Nome<input name="name" value="{{$d.Form.Name}}" required maxlength="80" placeholder="Meu Telegram"></label>
+    <label>Destino<input name="target" value="{{$d.Form.Target}}" required placeholder="chat_id, e-mail, URL ou telefone"></label>
+    <div class="span-2 hint">
+      <strong>Telegram:</strong> fale com seu bot, depois abra <span class="mono">https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</span> e copie o <span class="mono">chat.id</span>.
+      <strong>WhatsApp:</strong> número com DDI, ex.: 5519999999999.
+    </div>
+    <div class="span-2"><button class="btn btn-primary" type="submit">Adicionar canal</button></div>
+  </form>
+</section>
+{{end}}
+
+{{define "test-result"}}{{if .OK}}<span class="pill pill-up">{{.Message}}</span>{{else}}<span class="pill pill-down" title="{{.Message}}">falhou: {{.Message}}</span>{{end}}{{end}}

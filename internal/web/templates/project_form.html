@@ -1,0 +1,14 @@
+{{define "content"}}
+{{$f := .Data}}
+<div class="page-head"><h1>Editar projeto</h1><a class="btn btn-ghost" href="/projects">Voltar</a></div>
+<section class="card">
+  {{with $f.Error}}<div class="alert alert-error">{{.}}</div>{{end}}
+  <form class="form form-grid" method="post" action="/projects/{{$f.ID}}">
+    <label>Nome<input name="name" value="{{$f.Name}}" required maxlength="80"></label>
+    <label>Slug<input name="slug" value="{{$f.Slug}}" required maxlength="40"><span class="hint">Muda o endereço da página de status.</span></label>
+    <label class="span-2">Domínio próprio (Pro)<input name="custom_domain" value="{{$f.CustomDomain}}" placeholder="status.meusite.com"></label>
+    <label class="check span-2"><input type="checkbox" name="public" value="1" {{if $f.Public}}checked{{end}}> Página de status pública</label>
+    <div class="span-2"><button class="btn btn-primary" type="submit">Salvar</button></div>
+  </form>
+</section>
+{{end}}

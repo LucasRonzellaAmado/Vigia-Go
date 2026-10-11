@@ -1,0 +1,24 @@
+{{define "content"}}
+<div class="page-head"><h1>Incidentes</h1></div>
+{{if .Data}}
+<div class="card table-card">
+  <table class="table">
+    <thead><tr><th>Monitor</th><th>Início</th><th>Fim</th><th>Duração</th><th>Causa</th><th>Alertas</th></tr></thead>
+    <tbody>
+    {{range .Data}}
+      <tr>
+        <td><a class="strong" href="/monitors/{{.MonitorID}}">{{.MonitorName}}</a><div class="muted small">{{.ProjectName}}</div></td>
+        <td>{{datetime .StartedAt}}</td>
+        <td>{{if .ResolvedAt}}{{datetime .ResolvedAt}}{{else}}<span class="badge badge-down"><span class="dot"></span>em aberto</span>{{end}}</td>
+        <td>{{since .StartedAt .ResolvedAt}}</td>
+        <td class="muted">{{.Cause}}</td>
+        <td>{{.AlertsSent}}</td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table>
+</div>
+{{else}}
+<div class="card empty"><h2>Sem incidentes</h2><p class="muted">Quando algo cair, o histórico aparece aqui.</p></div>
+{{end}}
+{{end}}

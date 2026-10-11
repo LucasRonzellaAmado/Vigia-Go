@@ -1,0 +1,42 @@
+{{define "content"}}
+{{$d := .Data}}
+<div class="page-head">
+  <div>
+    <h1>Projetos</h1>
+    <p class="muted">Cada projeto tem sua página de status pública. {{len $d.Projects}} de {{.Limits.MaxProjects}} no plano {{.Limits.Plan.Label}}.</p>
+  </div>
+</div>
+
+<div class="card table-card">
+  <table class="table">
+    <thead><tr><th>Projeto</th><th>Página de status</th><th></th></tr></thead>
+    <tbody>
+    {{range $d.Projects}}
+      <tr>
+        <td class="strong">{{.Name}}</td>
+        <td>
+          {{if .Public}}<a href="/status/{{.Slug}}" target="_blank" rel="noopener">{{$.BaseURL}}/status/{{.Slug}}</a>{{else}}<span class="muted">privada</span>{{end}}
+          {{with .CustomDomain}}<div class="muted small">também em https://{{.}}</div>{{end}}
+        </td>
+        <td class="actions">
+          <a class="btn btn-sm" href="/projects/{{.ID}}/edit">Editar</a>
+          <form method="post" action="/projects/{{.ID}}/delete" hx-post="/projects/{{.ID}}/delete" hx-confirm="Apagar {{.Name}}? Os monitores e canais dele vão junto."><button class="btn btn-sm btn-danger" type="submit">Apagar</button></form>
+        </td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table>
+</div>
+
+<section class="card">
+  <h2>Novo projeto</h2>
+  {{with $d.Form.Error}}<div class="alert alert-error">{{.}}</div>{{end}}
+  <form class="form form-grid" method="post" action="/projects">
+    <label>Nome<input name="name" value="{{$d.Form.Name}}" required maxlength="80" placeholder="Loja da Tia"></label>
+    <label>Slug<input name="slug" value="{{$d.Form.Slug}}" maxlength="40" placeholder="gerado a partir do nome"></label>
+    <label class="span-2">Domínio próprio (Pro)<input name="custom_domain" value="{{$d.Form.CustomDomain}}" placeholder="status.meusite.com"><span class="hint">Aponte um CNAME para este servidor e o Nginx encaminha.</span></label>
+    <label class="check span-2"><input type="checkbox" name="public" value="1" {{if $d.Form.Public}}checked{{end}}> Página de status pública</label>
+    <div class="span-2"><button class="btn btn-primary" type="submit">Criar projeto</button></div>
+  </form>
+</section>
+{{end}}

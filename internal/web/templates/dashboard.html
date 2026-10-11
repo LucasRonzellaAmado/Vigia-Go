@@ -1,0 +1,48 @@
+{{define "content"}}
+<div class="page-head">
+  <div>
+    <h1>Monitores</h1>
+    <p class="muted">{{len .Data.Monitors}} de {{.Limits.MaxMonitors}} no plano {{.Limits.Plan.Label}}</p>
+  </div>
+  <a class="btn btn-primary" href="/monitors/new">+ Novo monitor</a>
+</div>
+
+{{template "monitor-table" .}}
+{{end}}
+
+{{define "monitor-table"}}
+<div id="monitor-table" hx-get="/fragments/monitors" hx-trigger="every 15s" hx-swap="outerHTML">
+  <div class="summary">
+    <div class="stat"><span class="stat-value up">{{.Data.Up}}</span><span class="muted">no ar</span></div>
+    <div class="stat"><span class="stat-value down">{{.Data.Down}}</span><span class="muted">fora do ar</span></div>
+    <div class="stat"><span class="stat-value paused">{{.Data.Paused}}</span><span class="muted">pausados</span></div>
+  </div>
+  {{if .Data.Monitors}}
+  <div class="card table-card">
+    <table class="table">
+      <thead><tr><th>Monitor</th><th>Status</th><th>Uptime 24h</th><th>Última checagem</th><th>Intervalo</th></tr></thead>
+      <tbody>
+      {{range .Data.Monitors}}
+        <tr>
+          <td>
+            <a class="strong" href="/monitors/{{.ID}}">{{.Name}}</a>
+            <div class="muted small">{{kindLabel .Kind}}{{if .Target}} · <span class="mono">{{.Target}}</span>{{end}} · {{.ProjectName}}</div>
+          </td>
+          <td>{{template "badge" .}}</td>
+          <td>{{if .HasUptime}}{{pct .Uptime24h}}{{else}}—{{end}}</td>
+          <td title="{{datetime .LastCheckedAt}}">{{ago .LastCheckedAt}}</td>
+          <td>{{seconds .IntervalSeconds}}</td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="card empty">
+    <h2>Nada sendo vigiado ainda</h2>
+    <p class="muted">Comece com o endereço do seu site ou API. Leva 20 segundos.</p>
+    <a class="btn btn-primary" href="/monitors/new">Criar primeiro monitor</a>
+  </div>
+  {{end}}
+</div>
+{{end}}

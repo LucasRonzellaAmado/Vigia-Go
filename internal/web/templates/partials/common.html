@@ -1,0 +1,15 @@
+{{define "flash"}}
+{{if .Flash}}<div class="alert alert-ok" role="status">{{.Flash}}</div>{{end}}
+{{if .Error}}<div class="alert alert-error" role="alert">{{.Error}}</div>{{end}}
+{{end}}
+
+{{define "badge"}}<span class="badge badge-{{statusClass .Status .Enabled}}"><span class="dot"></span>{{statusLabel .Status .Enabled}}</span>{{end}}
+
+{{define "bars"}}
+<div class="bars" role="img" aria-label="Uptime dos últimos {{len .}} dias">
+  {{range .}}<span class="bar bar-{{.Level}}" title="{{date .Date}} · {{if .HasData}}{{pct .Uptime}} no ar{{if .Incidents}} · {{.Incidents}} incidente(s), {{duration .Downtime}} fora{{end}}{{else}}sem dados{{end}}"></span>{{end}}
+</div>
+<div class="bars-legend muted small"><span>{{len .}} dias atrás</span><span>hoje</span></div>
+{{end}}
+
+{{define "field-error"}}{{with index .Errors .Field}}<p class="field-error">{{.}}</p>{{end}}{{end}}

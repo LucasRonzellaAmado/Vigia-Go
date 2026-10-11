@@ -1,0 +1,18 @@
+{{define "layout"}}<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{template "title" .}}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <meta name="htmx-config" content='{"includeIndicatorStyles": false}'>
+  <script src="/static/htmx.min.js" defer></script>
+</head>
+<body>
+  <main class="wrap main" style="max-width: 820px">
+    {{template "content" .}}
+  </main>
+  <footer class="wrap footer muted small" style="max-width: 820px">Monitorado pelo Vigia · horários de Brasília</footer>
+</body>
+</html>{{end}}

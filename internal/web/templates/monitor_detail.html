@@ -1,0 +1,96 @@
+{{define "content"}}
+{{$d := .Data}}{{$m := $d.Monitor}}
+<div class="page-head">
+  <div>
+    <p class="muted small"><a href="/">Monitores</a> / {{$d.Project.Name}}</p>
+    <h1>{{$m.Name}} {{template "badge" $m}}</h1>
+    <p class="muted">{{kindLabel $m.Kind}}{{if $m.Target}} · <span class="mono">{{$m.Target}}</span>{{end}} · a cada {{seconds $m.IntervalSeconds}}</p>
+  </div>
+  <div class="actions">
+    <a class="btn" href="/monitors/{{$m.ID}}/edit">Editar</a>
+    <form method="post" action="/monitors/{{$m.ID}}/toggle"><button class="btn" type="submit">{{if $m.Enabled}}Pausar{{else}}Reativar{{end}}</button></form>
+    <form method="post" action="/monitors/{{$m.ID}}/delete" hx-post="/monitors/{{$m.ID}}/delete" hx-confirm="Apagar {{$m.Name}} e todo o histórico?"><button class="btn btn-danger" type="submit">Apagar</button></form>
+  </div>
+</div>
+
+{{if $d.HeartbeatURL}}
+<div class="card callout">
+  <strong>URL do heartbeat</strong>
+  <p class="muted small">Chame no fim do seu job. Aceita GET, POST ou HEAD.</p>
+  <pre class="mono">curl -fsS -m 10 --retry 3 {{$d.HeartbeatURL}}</pre>
+</div>
+{{end}}
+
+<div class="grid-4">
+  {{range $d.Uptime}}
+  <div class="card stat-card">
+    <span class="muted small">Uptime {{.Label}}</span>
+    <span class="stat-big">{{if .OK}}{{pct .Value}}{{else}}—{{end}}</span>
+  </div>
+  {{end}}
+</div>
+
+<div class="grid-2">
+  <div class="card stat-card">
+    <span class="muted small">Latência p50 (24h)</span>
+    <span class="stat-big">{{if $d.Latency.OkChecks}}{{ms $d.Latency.P50}}{{else}}—{{end}}</span>
+  </div>
+  <div class="card stat-card">
+    <span class="muted small">Latência p95 (24h)</span>
+    <span class="stat-big">{{if $d.Latency.OkChecks}}{{ms $d.Latency.P95}}{{else}}—{{end}}</span>
+  </div>
+</div>
+
+<section class="card">
+  <h2>Últimos 90 dias</h2>
+  {{template "bars" $d.Bars}}
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <h2>Checagens recentes</h2>
+    <span class="muted small">atualiza sozinho</span>
+  </div>
+  {{template "results" .}}
+</section>
+
+<section class="card">
+  <h2>Incidentes (90 dias)</h2>
+  {{if $d.Incidents}}
+  <table class="table">
+    <thead><tr><th>Início</th><th>Fim</th><th>Duração</th><th>Causa</th></tr></thead>
+    <tbody>
+    {{range $d.Incidents}}
+      <tr>
+        <td>{{datetime .StartedAt}}</td>
+        <td>{{if .ResolvedAt}}{{datetime .ResolvedAt}}{{else}}<span class="badge badge-down"><span class="dot"></span>em aberto</span>{{end}}</td>
+        <td>{{since .StartedAt .ResolvedAt}}</td>
+        <td class="muted">{{.Cause}}</td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table>
+  {{else}}<p class="muted">Nenhum incidente. Que beleza.</p>{{end}}
+</section>
+{{end}}
+
+{{define "results"}}
+{{$d := .Data}}
+<div id="results" hx-get="/monitors/{{$d.Monitor.ID}}/results" hx-trigger="every 20s" hx-swap="outerHTML">
+  {{if $d.Results}}
+  <table class="table compact">
+    <thead><tr><th>Horário</th><th>Resultado</th><th>Latência</th><th>Detalhe</th></tr></thead>
+    <tbody>
+    {{range $d.Results}}
+      <tr>
+        <td title="{{datetime .CheckedAt}}">{{clock .CheckedAt}}</td>
+        <td>{{if .Ok}}<span class="pill pill-up">ok</span>{{else}}<span class="pill pill-down">falha</span>{{end}}</td>
+        <td>{{ms .LatencyMs}}</td>
+        <td class="muted">{{.Message}}</td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table>
+  {{else}}<p class="muted">Nenhuma checagem ainda. A primeira roda em alguns segundos.</p>{{end}}
+</div>
+{{end}}

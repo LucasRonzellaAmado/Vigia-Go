@@ -1,0 +1,13 @@
+{{define "content"}}
+<section class="auth-card card">
+  <h1>Entrar no Vigia</h1>
+  <p class="muted">Seus sites, APIs e servidores sob vigilância.</p>
+  {{with .Data.Error}}<div class="alert alert-error">{{.}}</div>{{end}}
+  <form method="post" action="/login" class="form">
+    <label>E-mail<input type="email" name="email" value="{{.Data.Email}}" required autofocus autocomplete="email"></label>
+    <label>Senha<input type="password" name="password" required autocomplete="current-password"></label>
+    <button class="btn btn-primary" type="submit">Entrar</button>
+  </form>
+  {{if .Data.AllowSignup}}<p class="muted small">Ainda não tem conta? <a href="/signup">Criar conta grátis</a></p>{{end}}
+</section>
+{{end}}

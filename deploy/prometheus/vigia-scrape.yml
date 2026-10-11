@@ -1,0 +1,9 @@
+scrape_configs:
+  - job_name: vigia
+    scrape_interval: 30s
+    metrics_path: /metrics
+    authorization:
+      type: Bearer
+      credentials: TROQUE_PELO_VIGIA_METRICS_TOKEN
+    static_configs:
+      - targets: ["vigia:8080"]

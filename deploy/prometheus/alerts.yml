@@ -1,0 +1,24 @@
+groups:
+  - name: vigia
+    rules:
+      - alert: VigiaFora
+        expr: up{job="vigia"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "O próprio Vigia parou de responder"
+      - alert: VigiaSemChecagens
+        expr: increase(vigia_checks_total[10m]) == 0 and vigia_scheduler_monitors > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "O scheduler do Vigia não executa checagens há 10 minutos"
+      - alert: VigiaMemoriaAlta
+        expr: process_resident_memory_bytes{job="vigia"} > 100e6
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Vigia usando mais de 100 MB de RSS"

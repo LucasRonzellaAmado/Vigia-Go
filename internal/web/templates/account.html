@@ -1,0 +1,32 @@
+{{define "content"}}
+{{$d := .Data}}
+<div class="page-head"><h1>Conta e plano</h1></div>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Sua conta</h2>
+    <dl class="kv">
+      <dt>E-mail</dt><dd>{{.User.Email}}</dd>
+      <dt>Plano</dt><dd><span class="pill">{{.Limits.Plan.Label}}</span></dd>
+      <dt>Membro desde</dt><dd>{{date .User.CreatedAt}}</dd>
+      <dt>Monitores</dt><dd>{{$d.MonitorCount}} / {{.Limits.MaxMonitors}}</dd>
+      <dt>Projetos</dt><dd>{{$d.ProjectCount}} / {{.Limits.MaxProjects}}</dd>
+    </dl>
+  </section>
+
+  <section class="card">
+    <h2>Planos</h2>
+    <table class="table compact">
+      <thead><tr><th></th><th>Free</th><th>Pro</th></tr></thead>
+      <tbody>
+        <tr><td>Monitores</td><td>{{$d.Free.MaxMonitors}}</td><td>{{$d.Pro.MaxMonitors}}</td></tr>
+        <tr><td>Projetos</td><td>{{$d.Free.MaxProjects}}</td><td>{{$d.Pro.MaxProjects}}</td></tr>
+        <tr><td>Intervalo mínimo</td><td>{{$d.Free.MinIntervalSeconds}}s</td><td>{{$d.Pro.MinIntervalSeconds}}s</td></tr>
+        <tr><td>Canais de alerta</td><td>{{$d.Free.MaxChannels}}</td><td>{{$d.Pro.MaxChannels}}</td></tr>
+        <tr><td>Domínio próprio no status</td><td>—</td><td>✓</td></tr>
+      </tbody>
+    </table>
+    <p class="muted small">Upgrade por enquanto é manual: <span class="mono">vigia set-plan {{.User.Email}} pro</span></p>
+  </section>
+</div>
+{{end}}

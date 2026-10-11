@@ -1,0 +1,63 @@
+{{define "title"}}Status · {{.Project.Name}}{{end}}
+
+{{define "content"}}
+<header class="status-hero">
+  <h1>{{.Project.Name}}</h1>
+  <p class="muted">Página de status</p>
+</header>
+{{template "live" .}}
+{{end}}
+
+{{define "live"}}
+<div id="live" hx-get="{{.LiveURL}}" hx-trigger="every 60s" hx-swap="outerHTML" style="display: grid; gap: 16px">
+  <div class="status-banner {{.Overall}}">
+    <span class="banner-dot"></span>
+    {{.Headline}}
+  </div>
+
+  {{if .Monitors}}
+  <section class="card">
+    {{range .Monitors}}
+    <div class="status-monitor">
+      <div class="status-monitor-head">
+        <div>
+          <span class="strong">{{.Name}}</span>
+          <span class="muted small">· {{if .HasData}}{{pct .Uptime}} em {{$.Days}} dias{{else}}sem histórico{{end}}</span>
+        </div>
+        {{template "status-badge" .}}
+      </div>
+      {{if .Since}}<p class="muted small">Fora do ar desde {{datetime .Since}}</p>{{end}}
+      {{template "status-bars" .Bars}}
+    </div>
+    {{end}}
+  </section>
+  {{end}}
+
+  <section class="card">
+    <h2>Histórico de incidentes</h2>
+    {{if .Incidents}}
+    <ul class="timeline">
+      {{range .Incidents}}
+      <li class="{{if not .ResolvedAt}}open{{end}}">
+        <div class="strong">{{.MonitorName}} · {{.Cause}}</div>
+        <div class="muted small">
+          {{datetime .StartedAt}} → {{if .ResolvedAt}}{{datetime .ResolvedAt}} ({{since .StartedAt .ResolvedAt}}){{else}}em andamento há {{since .StartedAt nil}}{{end}}
+        </div>
+      </li>
+      {{end}}
+    </ul>
+    {{else}}<p class="muted">Nenhum incidente nos últimos {{.Days}} dias.</p>{{end}}
+  </section>
+
+  <p class="muted small" style="text-align: center">Atualizado às {{clock .Updated}}</p>
+</div>
+{{end}}
+
+{{define "status-badge"}}<span class="badge badge-{{statusClass .Status .Enabled}}"><span class="dot"></span>{{if eq .Status "down"}}Fora do ar{{else if eq .Status "up"}}Operacional{{else}}Verificando{{end}}</span>{{end}}
+
+{{define "status-bars"}}
+<div class="bars" role="img" aria-label="Disponibilidade diária">
+  {{range .}}<span class="bar bar-{{.Level}}" title="{{date .Date}} · {{if .HasData}}{{pct .Uptime}}{{if .Incidents}} · {{duration .Downtime}} fora{{end}}{{else}}sem dados{{end}}"></span>{{end}}
+</div>
+<div class="bars-legend muted small"><span>{{len .}} dias atrás</span><span>hoje</span></div>
+{{end}}

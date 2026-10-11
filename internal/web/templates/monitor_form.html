@@ -1,0 +1,112 @@
+{{define "content"}}
+{{$d := .Data}}
+<div class="page-head">
+  <div>
+    <h1>{{.Title}}</h1>
+    {{if $d.Monitor}}<p class="muted">{{kindLabel $d.Monitor.Kind}} · o tipo não muda depois de criado</p>{{end}}
+  </div>
+  {{if $d.Monitor}}<a class="btn btn-ghost" href="/monitors/{{$d.Monitor.ID}}">Cancelar</a>{{else}}<a class="btn btn-ghost" href="/">Cancelar</a>{{end}}
+</div>
+
+{{with $d.Message}}<div class="alert alert-error">{{.}} <a href="/account">Ver planos</a></div>{{end}}
+
+<form class="card form form-grid" method="post" action="{{if $d.Monitor}}/monitors/{{$d.Monitor.ID}}{{else}}/monitors{{end}}">
+  <label class="span-2">Nome
+    <input name="name" value="{{$d.Input.Name}}" required maxlength="100" placeholder="Site principal" autofocus>
+    {{template "field-error" (dict "Errors" $d.Errors "Field" "name")}}
+  </label>
+
+  <label>Projeto
+    <select name="project_id" required>
+      {{range $d.Projects}}<option value="{{.ID}}" {{if eq64 .ID $d.Input.ProjectID}}selected{{end}}>{{.Name}}</option>{{end}}
+    </select>
+    {{template "field-error" (dict "Errors" $d.Errors "Field" "project_id")}}
+  </label>
+
+  {{if $d.Monitor}}
+  <input type="hidden" name="kind" value="{{$d.Input.Kind}}">
+  {{else}}
+  <label>Tipo
+    <select name="kind" hx-get="/monitors/fields" hx-target="#kind-fields" hx-swap="outerHTML">
+      {{range $d.Kinds}}<option value="{{.}}" {{if eq . $d.Input.Kind}}selected{{end}}>{{kindLabel .}}</option>{{end}}
+    </select>
+    {{template "field-error" (dict "Errors" $d.Errors "Field" "kind")}}
+  </label>
+  {{end}}
+
+  {{template "kind-fields" .}}
+
+  <label class="check span-2"><input type="checkbox" name="enabled" value="1" {{if derefBool $d.Input.Enabled}}checked{{end}}> Monitor ativo</label>
+
+  <div class="span-2 actions">
+    <button class="btn btn-primary" type="submit">{{if $d.Monitor}}Salvar alterações{{else}}Criar monitor{{end}}</button>
+  </div>
+</form>
+{{end}}
+
+{{define "kind-fields"}}
+{{$d := .Data}}
+<div id="kind-fields" class="span-2 form-grid nested">
+  {{if eq $d.Input.Kind "http"}}
+  <label class="span-2">URL
+    <input name="target" value="{{$d.Input.Target}}" required placeholder="https://meusite.com/health" inputmode="url">
+    {{template "field-error" (dict "Errors" $d.Errors "Field" "target")}}
+  </label>
+  <label>Status esperado
+    <input type="number" name="expected_status" min="0" max="599" value="{{$d.Input.ExpectedStatus}}">
+    <span class="hint">0 aceita qualquer 2xx/3xx.</span>
+    {{template "field-error" (dict "Errors" $d.Errors "Field" "expected_status")}}
+  </label>
+  <label>Palavra-chave no corpo
+    <input name="keyword" value="{{$d.Input.Keyword}}" maxlength="200" placeholder="opcional">
+    {{template "field-error" (dict "Errors" $d.Errors "Field" "keyword")}}
+  </label>
+  {{else if eq $d.Input.Kind "tcp"}}
+  <label class="span-2">Host e porta
+    <input name="target" value="{{$d.Input.Target}}" required placeholder="db.meusite.com:5432">
+    {{template "field-error" (dict "Errors" $d.Errors "Field" "target")}}
+  </label>
+  {{else if eq $d.Input.Kind "ping"}}
+  <label class="span-2">Host ou IP
+    <input name="target" value="{{$d.Input.Target}}" required placeholder="192.168.0.10">
+    {{template "field-error" (dict "Errors" $d.Errors "Field" "target")}}
+  </label>
+  {{else if eq $d.Input.Kind "ssl"}}
+  <label>Domínio
+    <input name="target" value="{{$d.Input.Target}}" required placeholder="meusite.com">
+    {{template "field-error" (dict "Errors" $d.Errors "Field" "target")}}
+  </label>
+  <label>Alertar quando faltarem menos de (dias)
+    <input type="number" name="ssl_expiry_days" min="1" max="365" value="{{$d.Input.SSLExpiryDays}}">
+    {{template "field-error" (dict "Errors" $d.Errors "Field" "ssl_expiry_days")}}
+  </label>
+  {{else if eq $d.Input.Kind "heartbeat"}}
+  <p class="span-2 hint">Seu cron job chama uma URL secreta ao terminar (ex.: <span class="mono">curl -fsS URL</span>). Se o ping não chegar no prazo, o Vigia abre um incidente. A URL aparece depois de criar.</p>
+  {{end}}
+
+  {{if ne $d.Input.Kind "ssl"}}{{if ne $d.Input.Kind "heartbeat"}}<input type="hidden" name="ssl_expiry_days" value="{{$d.Input.SSLExpiryDays}}">{{end}}{{end}}
+
+  <label>{{if eq $d.Input.Kind "heartbeat"}}Período esperado (segundos){{else}}Intervalo (segundos){{end}}
+    <input type="number" name="interval_seconds" min="10" value="{{$d.Input.IntervalSeconds}}" required>
+    {{template "field-error" (dict "Errors" $d.Errors "Field" "interval_seconds")}}
+  </label>
+  <label>{{if eq $d.Input.Kind "heartbeat"}}Tolerância de atraso (segundos){{else}}Timeout (segundos){{end}}
+    <input type="number" name="timeout_seconds" min="1" value="{{$d.Input.TimeoutSeconds}}" required>
+    {{template "field-error" (dict "Errors" $d.Errors "Field" "timeout_seconds")}}
+  </label>
+  {{if ne $d.Input.Kind "heartbeat"}}
+  <label>Retentativas por checagem
+    <input type="number" name="retries" min="0" max="5" value="{{$d.Input.Retries}}">
+    <span class="hint">Tenta de novo antes de contar como falha.</span>
+    {{template "field-error" (dict "Errors" $d.Errors "Field" "retries")}}
+  </label>
+
+  {{else}}<input type="hidden" name="retries" value="0">{{end}}
+  <label>Falhas seguidas para confirmar queda
+    <input type="number" name="failure_threshold" min="1" max="20" value="{{$d.Input.FailureThreshold}}">
+    <span class="hint">Evita alerta por soluço de rede.</span>
+    {{template "field-error" (dict "Errors" $d.Errors "Field" "failure_threshold")}}
+  </label>
+
+</div>
+{{end}}
